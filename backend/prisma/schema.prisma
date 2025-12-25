@@ -3,47 +3,57 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
-model conversation {
-  id                 String               @id
-  title              String?
-  createdAt          DateTime             @default(now())
-  conversationmember conversationmember[]
-  message            message[]
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  
+  // Relations
+  sentMessages     Message[] @relation("SentMessages")
+  conversations    ConversationMember[]
 }
 
-model conversationmember {
-  id             String       @id
+model Conversation {
+  id        String   @id @default(uuid())
+  title     String?
+  createdAt DateTime @default(now())
+  
+  // Relations
+  members   ConversationMember[]
+  messages  Message[]
+}
+
+model ConversationMember {
+  id             String       @id @default(uuid())
   userId         String
   conversationId String
   role           String       @default("member")
   createdAt      DateTime     @default(now())
-  conversation   conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, map: "ConversationMember_conversationId_fkey")
-  user           user         @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ConversationMember_userId_fkey")
 
-  @@unique([userId, conversationId], map: "ConversationMember_userId_conversationId_key")
-  @@index([conversationId], map: "ConversationMember_conversationId_fkey")
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+  @@index([conversationId])
 }
 
-model message {
-  id             String       @id
+model Message {
+  id             String       @id @default(uuid())
   conversationId String
   senderId       String
   content        String
   createdAt      DateTime     @default(now())
-  conversation   conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, map: "Message_conversationId_fkey")
-  user           user         @relation(fields: [senderId], references: [id], onDelete: Cascade, map: "Message_senderId_fkey")
 
-  @@index([conversationId, createdAt], map: "Message_conversationId_createdAt_idx")
-  @@index([senderId], map: "Message_senderId_fkey")
-}
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
-model user {
-  id                 String               @id
-  username           String               @unique(map: "User_username_key")
-  createdAt          DateTime             @default(now())
-  conversationmember conversationmember[]
-  message            message[]
+  @@index([conversationId, createdAt])
+  @@index([senderId])
 }
