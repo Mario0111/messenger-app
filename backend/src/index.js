@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 app.use((req, res, next) => {
   console.log(`[DEBUG] Received ${req.method} request to ${req.url}`);

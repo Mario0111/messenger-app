@@ -21,6 +21,19 @@ const register = async (req, res) => {
 
         await pool.query('INSERT INTO User (id, username, password) VALUES (?, ?, ?)', [userId, username, hashedPassword]);
 
+        // Auto-friend Nebula AI
+        try {
+            const aiId = '0000-0000-AI';
+            const reqId = uuidv4();
+            // Check if AI exists (it should)
+            const [ai] = await pool.query('SELECT id FROM User WHERE id = ?', [aiId]);
+            if (ai.length > 0) {
+                await pool.query('INSERT INTO FriendRequest (id, senderId, receiverId, status) VALUES (?, ?, ?, "accepted")', [reqId, aiId, userId]);
+            }
+        } catch (e) {
+            console.error("Failed to auto-friend AI:", e);
+        }
+
         res.status(201).json({ message: 'User created successfully', userId });
     } catch (error) {
         console.error(error);
@@ -55,4 +68,17 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { register, login };
+const logout = async (req, res) => {
+    try {
+        if (req.user) {
+            // Set last active to null or old time to verify offline
+            await pool.query('UPDATE User SET lastActiveAt = NULL WHERE id = ?', [req.user.id]);
+        }
+        res.json({ message: 'Logged out successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Logout failed' });
+    }
+}
+
+module.exports = { register, login, logout };

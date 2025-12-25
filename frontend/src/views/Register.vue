@@ -1,42 +1,56 @@
 <template>
-  <div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="w-full max-w-md p-8 space-y-6 bg-white rounded shadow-md">
-      <h2 class="text-2xl font-bold text-center text-gray-900">Create an Account</h2>
-      <form @submit.prevent="handleRegister" class="space-y-4">
-        <div>
-          <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-          <input
-            v-model="username"
-            type="text"
-            id="username"
-            required
-            class="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            placeholder="Choose a username"
-          />
+  <div class="flex items-center justify-center min-h-screen bg-[#0f172a] relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/40 rounded-full mix-blend-screen filter blur-[128px] opacity-30 animate-pulse"></div>
+    <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-900/40 rounded-full mix-blend-screen filter blur-[128px] opacity-30 animate-pulse animation-delay-2000"></div>
+    <div class="absolute -bottom-32 left-20 w-[40%] h-[40%] bg-pink-900/40 rounded-full mix-blend-screen filter blur-[128px] opacity-30 animate-pulse animation-delay-4000"></div>
+
+    <div class="w-full max-w-md p-8 space-y-8 bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 z-10 relative">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold text-white tracking-tight mb-2">Join Nebula</h1>
+        <p class="text-gray-300">Create your account to start messaging</p>
+      </div>
+      
+      <form @submit.prevent="handleRegister" class="space-y-6">
+        <div class="space-y-4">
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-300 mb-1">Username</label>
+            <input
+              v-model="username"
+              type="text"
+              id="username"
+              required
+              class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-black/30 text-white placeholder-gray-500 transition-all font-light"
+              placeholder="Choose a username"
+            />
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+            <input
+              v-model="password"
+              type="password"
+              id="password"
+              required
+              class="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-black/30 text-white placeholder-gray-500 transition-all font-light"
+              placeholder="Choose a password"
+            />
+          </div>
         </div>
-        <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            id="password"
-            required
-            class="w-full px-3 py-2 mt-1 border rounded-md focus:outline-none focus:ring focus:ring-indigo-200"
-            placeholder="Choose a password"
-          />
-        </div>
-        <div v-if="error" class="text-sm text-red-600">
+
+        <div v-if="error" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-200 text-sm text-center">
           {{ error }}
         </div>
+
         <button
           type="submit"
-          class="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:bg-indigo-700"
+          class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500 transform transition-all active:scale-[0.98] shadow-lg shadow-indigo-500/30"
         >
           Sign Up
         </button>
       </form>
-      <p class="text-sm text-center text-gray-600">
-        Already have an account? <router-link to="/login" class="text-indigo-600 hover:underline">Log in</router-link>
+      
+      <p class="text-center text-gray-400 text-sm">
+        Already have an account? <router-link to="/login" class="text-white hover:text-purple-300 font-medium transition-colors">Log in</router-link>
       </p>
     </div>
   </div>

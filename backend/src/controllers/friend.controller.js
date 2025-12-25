@@ -79,15 +79,44 @@ const getFriends = async (req, res) => {
         // Find all requests where (sender = me OR receiver = me) AND status = accepted
         // Join with User to get the OTHER person's name
         const [friends] = await pool.query(`
-            SELECT u.id, u.username
+            SELECT 
+                u.id, 
+                u.username, 
+                u.avatarUrl,
+                u.lastActiveAt,
+                (SELECT COUNT(*) FROM Message m 
+                 WHERE m.senderId = u.id 
+                 AND m.conversationId IN (SELECT conversationId FROM ConversationMember WHERE userId = ?)
+                 AND m.isRead = FALSE) as unreadCount
             FROM FriendRequest fr
             JOIN User u ON (fr.senderId = u.id OR fr.receiverId = u.id)
             WHERE (fr.senderId = ? OR fr.receiverId = ?)
             AND fr.status = 'accepted'
             AND u.id != ?
-        `, [userId, userId, userId]);
+        `, [userId, userId, userId, userId]);
 
-        res.json(friends);
+        const augmentedFriends = friends.map(f => {
+            let isOnline = false;
+            // Force AI to be online
+            if (f.id === '0000-0000-AI') {
+                isOnline = true;
+            } else if (f.lastActiveAt) {
+                const diffMs = new Date() - new Date(f.lastActiveAt);
+                // Considered online if active in the last 2 minutes
+                if (diffMs < 2 * 60 * 1000) {
+                    isOnline = true;
+                }
+            }
+            return {
+                id: f.id,
+                username: f.username,
+                avatarUrl: f.avatarUrl,
+                unreadCount: Number(f.unreadCount),
+                isOnline
+            };
+        });
+
+        res.json(augmentedFriends);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error fetching friends' });
