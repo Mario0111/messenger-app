@@ -38,4 +38,25 @@ const getMe = async (req, res) => {
     }
 }
 
-module.exports = { getAllUsers, uploadAvatar, getMe };
+const getAllUsersAdmin = async (req, res) => {
+    try {
+        const [users] = await pool.query('SELECT id, username, role, country, lat, lng, createdAt FROM User ORDER BY createdAt DESC');
+        res.json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error fetching users' });
+    }
+};
+
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await pool.query('DELETE FROM User WHERE id = ?', [id]);
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error deleting user' });
+    }
+};
+
+module.exports = { getAllUsers, uploadAvatar, getMe, getAllUsersAdmin, deleteUser };

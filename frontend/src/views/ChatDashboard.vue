@@ -16,6 +16,7 @@
         @open-create-group="showCreateGroupModal = true"
         @refresh="fetchData"
         @upload-avatar="fetchProfile"
+        @open-settings="showSettingsModal = true"
       />
     </div>
 
@@ -48,6 +49,10 @@
       @close="showCreateGroupModal = false"
       @group-created="fetchData"
     />
+    <SettingsModal
+      v-if="showSettingsModal"
+      @close="showSettingsModal = false"
+    />
   </div>
 </template>
 
@@ -60,6 +65,7 @@ import ChatWindow from '../components/ChatWindow.vue'
 import AddFriendModal from '../components/AddFriendModal.vue'
 import CreateGroupModal from '../components/CreateGroupModal.vue'
 import Notifications from '../components/Notifications.vue'
+import SettingsModal from '../components/SettingsModal.vue'
 
 const router = useRouter()
 const activeConversationId = ref(null)
@@ -67,6 +73,7 @@ const selectedRecipient = ref(null)
 
 const showAddFriendModal = ref(false)
 const showCreateGroupModal = ref(false)
+const showSettingsModal = ref(false)
 
 const conversations = ref([]) // DMs and Groups
 const friends = ref([]) // For selecting in modal

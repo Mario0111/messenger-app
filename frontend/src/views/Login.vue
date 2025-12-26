@@ -77,8 +77,13 @@ const handleLogin = async () => {
     
     sessionStorage.setItem('token', response.data.token)
     sessionStorage.setItem('user', JSON.stringify(response.data.user))
+    sessionStorage.setItem('role', response.data.user.role)
     
-    router.push('/')
+    if (response.data.user.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   } catch (err) {
     error.value = err.response?.data?.error || 'Login failed'
   }

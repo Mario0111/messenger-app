@@ -1,5 +1,6 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config(); // Load .env
+const { v4: uuidv4 } = require('uuid');
 
 
 const pool = mysql.createPool({
@@ -33,13 +34,29 @@ const initDB = async () => {
         id VARCHAR(36) PRIMARY KEY,
         username VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
+        role ENUM('user', 'admin') DEFAULT 'user',
         avatarUrl VARCHAR(500),
         lastActiveAt DATETIME,
+        country VARCHAR(100),
+        lat FLOAT,
+        lng FLOAT,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     // Migration for existing tables
+    try {
+      await connection.query("ALTER TABLE User ADD COLUMN role ENUM('user', 'admin') DEFAULT 'user';");
+    } catch (e) { }
+    try {
+      await connection.query("ALTER TABLE User ADD COLUMN country VARCHAR(100);");
+    } catch (e) { }
+    try {
+      await connection.query("ALTER TABLE User ADD COLUMN lat FLOAT;");
+    } catch (e) { }
+    try {
+      await connection.query("ALTER TABLE User ADD COLUMN lng FLOAT;");
+    } catch (e) { }
     try {
       await connection.query("ALTER TABLE User ADD COLUMN lastActiveAt DATETIME;");
     } catch (e) { }
@@ -138,6 +155,42 @@ const initDB = async () => {
       await connection.query('INSERT INTO User (id, username, password, avatarUrl) VALUES (?, ?, ?, ?)',
         ['0000-0000-AI', 'Nebula AI', '$2a$10$NebulaAISecretHashPlaceholder................', 'https://ui-avatars.com/api/?name=Nebula+AI&background=6366f1&color=fff&size=512']
       );
+    }
+
+    // ENSURE ALL USERS ARE FRIENDS WITH NEBULA AI
+    const [allUsers] = await connection.query('SELECT id FROM User WHERE id != "0000-0000-AI"');
+    const aiId = '0000-0000-AI';
+
+    for (const user of allUsers) {
+      const [existing] = await connection.query(
+        'SELECT id FROM FriendRequest WHERE (senderId = ? AND receiverId = ?) OR (senderId = ? AND receiverId = ?)',
+        [user.id, aiId, aiId, user.id]
+      );
+
+      if (existing.length === 0) {
+        await connection.query(
+          'INSERT INTO FriendRequest (id, senderId, receiverId, status) VALUES (?, ?, ?, "accepted")',
+          [uuidv4(), aiId, user.id]
+        );
+        console.log(`🤖 Auto-friended user ${user.id} with Nebula AI`);
+      }
+
+      // ENSURE CONVERSATION EXISTS
+      const [existingConv] = await connection.query(`
+        SELECT c.id 
+        FROM Conversation c
+        JOIN ConversationMember m1 ON c.id = m1.conversationId
+        JOIN ConversationMember m2 ON c.id = m2.conversationId
+        WHERE m1.userId = ? AND m2.userId = ?
+      `, [user.id, aiId]);
+
+      if (existingConv.length === 0) {
+        const convId = uuidv4();
+        await connection.query('INSERT INTO Conversation (id) VALUES (?)', [convId]);
+        await connection.query('INSERT INTO ConversationMember (id, userId, conversationId) VALUES (?, ?, ?)', [uuidv4(), user.id, convId]);
+        await connection.query('INSERT INTO ConversationMember (id, userId, conversationId) VALUES (?, ?, ?)', [uuidv4(), aiId, convId]);
+        console.log(`🤖 Created conversation between user ${user.id} and Nebula AI`);
+      }
     }
 
     connection.release();
